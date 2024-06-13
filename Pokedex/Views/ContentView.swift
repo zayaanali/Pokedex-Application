@@ -33,7 +33,7 @@ struct ContentView: View {
                         PokemonRow(entry: entry)
                     }.listRowBackground(
                         Capsule()
-                            .fill(Color.blue.opacity(0.7))
+                            .fill(Color.gray.opacity(0.1))
                             .padding(.vertical, 4)
                     
                     )
@@ -41,7 +41,7 @@ struct ContentView: View {
                 .listRowSeparator(.hidden)
                 
             }
-            .navigationTitle("Pokedex")
+            .navigationBarTitle("Pokedex")
             .searchable(text: $searchText)
             .listRowInsets(.init(top:0, leading: 40, bottom: 0, trailing: 40))
         }

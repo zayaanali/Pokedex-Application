@@ -9,25 +9,32 @@ struct PokemonDetailView: View {
             // save background color for theming
             let pokemonBgrdColor = pokemonBackgroundColor(for: pokemonEntry.types.first?.type.name)
             
-            /* Sprite Background */
-            Rectangle()
-                .fill(pokemonBgrdColor)
-                .frame(height: 200)
-                .cornerRadius(10)
-            
-            /* Display Pokemon Sprite */
-            displayPokemonSprite()
-                .offset(x:0, y:-100)
-                .padding(.bottom, -100)
-            
-            /* Display Pokemon Name and id */
-            HStack {
-                Text(pokemonEntry.name.capitalized)
-                    .font(.title)
-                    .bold()
-                Spacer()
-                Text("#0\(pokemonEntry.id)").font(.title3)
+            ZStack {
+                /* Sprite Background */
+                Rectangle()
+                    .fill(pokemonBgrdColor)
+                    .frame(height: 300)
+                    .cornerRadius(10)
+
+                VStack {
+                    displayPokemonSprite()
+                    
+                    HStack {
+                        Text(pokemonEntry.name.capitalized)
+                            .font(.title)
+                            .bold()
+                        
+                        Spacer()
+                        Text("#0\(pokemonEntry.id)")
+                            .font(.title3)
+                            .foregroundColor(.gray)
+                        
+                    }.padding(.horizontal, 20)
+                }
             }
+        
+            /* Display Pokemon Name and id */
+            
             
             /* Print Pokemon Types */
             HStack {
@@ -162,7 +169,7 @@ struct PokemonDetailView: View {
                     .frame(width: 200, height: 200)
                     .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
                     .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                    .shadow(radius: 5)
+                    .shadow(radius: 50)
             } placeholder: {
                 ProgressView()
             }
