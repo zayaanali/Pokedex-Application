@@ -17,43 +17,6 @@ struct PokemonEntry : Codable, Identifiable {
     let id = UUID()
 }
 
-struct PokemonDetails : Codable {
-    let id : Int
-    let name : String
-    let sprites : PokemonSprite
-    let types : [PokemonTypes]
-    let height : Int
-    let weight : Int
-    let stats : [PokemonStatEntry]
-}
-
-struct PokemonSprite : Codable {
-    let front_default : URL?
-}
-
-struct PokemonTypes : Codable {
-    let type : PokemonType
-}
-
-struct PokemonType : Codable {
-    let name : String
-}
-
-struct PokemonStatEntry : Codable, Identifiable {
-    var id = UUID()
-    let base_stat: Int
-    let stat: PokemonStat
-
-    private enum CodingKeys: String, CodingKey {
-        case base_stat
-        case stat
-    }
-}
-
-struct PokemonStat : Codable {
-    let name: String
-}
-
 class PokeAPI {
     func fetchPokemon (limit: Int, offset: Int) async throws -> [PokemonEntry] {
         let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)")!
@@ -71,8 +34,13 @@ class PokeAPI {
         
         return pokemonDetail
     }
-
-
 }
+
+
+
+
+
+
+
 
 
