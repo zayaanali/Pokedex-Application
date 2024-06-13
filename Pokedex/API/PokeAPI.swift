@@ -40,7 +40,7 @@ struct PokemonType : Codable {
 }
 
 struct PokemonStatEntry : Codable, Identifiable {
-    var id = UUID() // This id is generated locally and not part of the JSON
+    var id = UUID()
     let base_stat: Int
     let stat: PokemonStat
 
@@ -55,10 +55,10 @@ struct PokemonStat : Codable {
 }
 
 class PokeAPI {
-    func fetchPokemon () async throws -> [PokemonEntry] {
-        let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=10")!
-        
-        let (data, response) = try await URLSession.shared.data(from: url)
+    func fetchPokemon (limit: Int, offset: Int) async throws -> [PokemonEntry] {
+        let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)")!
+
+        let (data, _) = try await URLSession.shared.data(from: url)
         let pokemonList = try JSONDecoder().decode(Pokemon.self, from: data)
         
         return pokemonList.results

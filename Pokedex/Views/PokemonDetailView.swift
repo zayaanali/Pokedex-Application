@@ -2,44 +2,46 @@ import SwiftUI
 import Charts
 
 struct PokemonDetailView: View {
-    var pokemonEntry: PokemonDetails
+    let pokemonEntry: PokemonDetails
+    let pokemonSprite: Image
+    
+    
 
     var body: some View {
+        /* Variables for readability */
+        let pokemonBgrdColor = pokemonBackgroundColor(for: pokemonEntry.types.first?.type.name)
+        let (convertedFeet, convertedInches) = convertHeight(decameters: pokemonEntry.height)
+        let convertedWeight = convertWeight(decagrams: pokemonEntry.weight)
+        
         ScrollView {
-            // save background color for theming
-            let pokemonBgrdColor = pokemonBackgroundColor(for: pokemonEntry.types.first?.type.name)
-            
+            /* Pokemon Header (sprite, name, id) */
             ZStack {
-                /* Sprite Background */
-                Rectangle()
+                RoundedRectangle(cornerRadius: 10) // background
                     .fill(pokemonBgrdColor)
                     .frame(height: 300)
-                    .cornerRadius(10)
-
-                VStack {
-                    displayPokemonSprite()
-                    
+                VStack { // sprite, name, and id
+                    pokemonSprite
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 200, height: 200)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.white, lineWidth: 4))
+                        .shadow(radius: 50)
                     HStack {
                         Text(pokemonEntry.name.capitalized)
                             .font(.title)
                             .bold()
-                        
                         Spacer()
                         Text("#0\(pokemonEntry.id)")
                             .font(.title3)
-                            .foregroundColor(.gray)
-                        
                     }.padding(.horizontal, 20)
                 }
             }
         
-            /* Display Pokemon Name and id */
-            
-            
             /* Print Pokemon Types */
             HStack {
                 ForEach(pokemonEntry.types, id: \.type.name) { pokemonType in
-                    Rectangle()
+                    RoundedRectangle(cornerRadius: 10)
                         .fill(pokemonBackgroundColor(for: pokemonType.type.name))
                         .frame(width: 75, height: 35)
                         .cornerRadius(10)
@@ -54,134 +56,62 @@ struct PokemonDetailView: View {
                 }
             }
             
-            /* Pokemon Basic Information */
-            
-            // Convert height/weight to correct units
-            let (convertedFeet, convertedInches) = convertHeight(decameters: pokemonEntry.height)
-            let convertedWeight = convertWeight(decagrams: pokemonEntry.weight)
-            
-            
-                
+            /* Pokemon Basic Information (height and weight) */
             ZStack {
-                RoundedRectangle(cornerRadius: /*@START_MENU_TOKEN@*/25.0/*@END_MENU_TOKEN@*/, style: .continuous)
-                    .frame(height: 100)
-                    .foregroundColor(Color.white)
-                    .shadow(radius: 1)
-                    .padding(.horizontal, 1)
-                    .overlay(
-                        HStack {
-                            VStack {
-                                Text("Height")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.gray)
-                                Text("'\(convertedFeet) \"\(convertedInches)" )
-                            }
-                            Divider()
-                                .frame(width: 1)
-                                .padding(.horizontal, 25)
-                                .padding(.vertical, 20)
+                infoBox(title: "Basic Information", height: 100, offset: -50, color: pokemonBgrdColor)
+                HStack {
+                    VStack {
+                        Text("Height")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                        Text("'\(convertedFeet) \"\(convertedInches)" )
+                    }
+                    Divider()
+                        .frame(width: 1)
+                        .padding(.horizontal, 25)
+                        .padding(.vertical, 20)
 
-                            VStack {
-                                Text("Weight")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(.gray)
-                                Text("\(convertedWeight) lbs")
-                            }
-                        }.padding(.all, 10)
-                    )
-                    .offset(x: 0, y: 0)
-                
-                Capsule() // Text Header
-                    
-                    .stroke(pokemonBgrdColor, lineWidth: 4)
-                    .background(.white)
-                    .frame(width: 140, height: 30)
-                    .overlay(
-                        Text("Basic Information")
-                            .foregroundColor(pokemonBgrdColor)
-                            .font(.system(size: 13))
-                            .bold()
-                    )
-                    .cornerRadius(20)
-                    .offset(x: 0, y: -50)
-            }.padding(.vertical, 40)
+                    VStack {
+                        Text("Weight")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                        Text("\(convertedWeight) lbs")
+                    }
+                }
+            }.padding(.vertical, 35)
             
+            /* Pokemon stats */
             ZStack {
-                RoundedRectangle(cornerRadius: /*@START_MENU_TOKEN@*/25.0/*@END_MENU_TOKEN@*/, style: .continuous)
-                    .frame(height: 225)
-                    .foregroundColor(Color.white)
-                    .shadow(radius: 1)
-                    .padding(.horizontal, 1)
-                    .overlay(
-                        Chart {
-                            ForEach(pokemonEntry.stats) { entry in
-                                BarMark(x: .value("value", entry.base_stat),
-                                        y: .value("type", shortenedStatName(statName: entry.stat.name))).foregroundStyle(pokemonBgrdColor.gradient)
-                                    .cornerRadius(50)
-                                    .annotation (position: .trailing) {
-                                        Text("\(entry.base_stat)")
-                                            .font(.system(size: 10))
-                                            .foregroundColor(.gray)
-                                    }
+                infoBox(title: "Base Stats", height: 225, offset: -115, color: pokemonBgrdColor)
+                Chart {
+                    ForEach(pokemonEntry.stats) { entry in
+                        BarMark(x: .value("value", entry.base_stat),
+                                y: .value("type", shortenedStatName(statName: entry.stat.name))).foregroundStyle(pokemonBgrdColor.gradient)
+                            .cornerRadius(50)
+                            .annotation (position: .trailing) {
+                                Text("\(entry.base_stat)")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.gray)
                             }
-                        }
-                            .padding(.horizontal, 25)
-                            .padding(.vertical, 30)
-                            .chartLegend(.hidden)
-                            .chartXAxis(.hidden)
-                            .chartYAxis {
-                                AxisMarks { _ in
-                                    AxisValueLabel()
-                                }
-                            }
-                    )
-                    .offset(x: 0, y: 0)
-
-                
-                Capsule() // Text Header
-                    .stroke(pokemonBgrdColor, lineWidth: 4)
-                    .background(.white)
-                    .frame(width: 140, height: 30)
-                    .overlay(
-                        Text("Base Stats")
-                            .foregroundColor(pokemonBgrdColor)
-                            .font(.system(size: 13))
-                            .bold()
-                    )
-                    .cornerRadius(20)
-                    .offset(x: 0, y: -115)
+                    }
+                }
+                .padding(.horizontal, 25)
+                .padding(.vertical, 30)
+                .chartLegend(.hidden)
+                .chartXAxis(.hidden)
+                .chartYAxis {
+                    AxisMarks { _ in
+                        AxisValueLabel()
+                    }
+                }
             }
-            
-            
-            
         }
         .padding(.horizontal, 40)
     }
-        
-
-    @ViewBuilder
-    private func displayPokemonSprite() -> some View {
-        if let frontDefaultURL = pokemonEntry.sprites.front_default {
-            AsyncImage(url: frontDefaultURL) { image in
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                    .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-                    .overlay(Circle().stroke(Color.white, lineWidth: 4))
-                    .shadow(radius: 50)
-            } placeholder: {
-                ProgressView()
-            }
-            .clipShape(Circle())
-        } else {
-            Image(systemName: "questionmark.circle")
-                .resizable()
-                .frame(width: 50, height: 50)
-        }
-    }
 }
 
+
+/* To be able to view pokemon */
 struct PokemonDetailView_Previews: PreviewProvider {
     static var previews: some View {
         let mockPokemonDetails = PokemonDetails(
@@ -198,6 +128,6 @@ struct PokemonDetailView_Previews: PreviewProvider {
                      PokemonStatEntry(base_stat: 50, stat: PokemonStat(name: "special-defense")),
                      PokemonStatEntry(base_stat: 90, stat: PokemonStat(name: "speed")) ]
         )
-        PokemonDetailView(pokemonEntry: mockPokemonDetails)
+        PokemonDetailView(pokemonEntry: mockPokemonDetails, pokemonSprite: Image("Pikachu"))
     }
 }

@@ -8,43 +8,41 @@
 import Foundation
 import SwiftUI
   
+import SwiftUI
+
 struct PokemonRow: View {
     let entry: PokemonEntry
     @State private var pokemonDetails: PokemonDetails?
+    @State private var pokemonSprite: Image?
+    @State private var isFetchingDetails = false
+    
+    // Cache to store fetched PokemonDetails and sprites
+    @State private var detailsCache: [String: (details: PokemonDetails, sprite: Image)] = [:]
 
     var body: some View {
-        let pokemonFirstType = pokemonDetails?.types.first?.type.name
         HStack {
-            
-            if let details = pokemonDetails {
-                NavigationLink(destination: PokemonDetailView(pokemonEntry: details)) {
+            if let details = pokemonDetails, let img = pokemonSprite {
+                NavigationLink(destination: PokemonDetailView(pokemonEntry: details, pokemonSprite: img)) {
                     displayPokemonSprite()
                     Text(entry.name.capitalized)
                 }
             } else {
                 Text("Loading")
             }
-    
         }
         .onAppear {
-            fetchPokemonDetails()
+            fetchPokemonDetailsIfNeeded()
         }
-        
     }
 
     private func displayPokemonSprite() -> some View {
-        if let frontDefaultURL = pokemonDetails?.sprites.front_default {
+        if let sprite = pokemonSprite {
             return AnyView(
-                AsyncImage(url: frontDefaultURL) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
-                } placeholder: {
-                    ProgressView()
-                }
-                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-
+                sprite
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+                    .clipShape(Circle())
             )
         } else {
             return AnyView(
@@ -55,47 +53,55 @@ struct PokemonRow: View {
         }
     }
     
+    private func fetchPokemonDetailsIfNeeded() {
+        // Check if details are already fetched and cached
+        if let cachedDetails = detailsCache[entry.url] {
+            pokemonDetails = cachedDetails.details
+            pokemonSprite = cachedDetails.sprite
+        } else {
+            fetchPokemonDetails() // If details are not cached, fetch them
+        }
+    }
+    
     private func fetchPokemonDetails() {
+        guard !isFetchingDetails else { return } // Prevent multiple fetches
+        isFetchingDetails = true
+        
         Task {
             do {
                 let details = try await PokeAPI().fetchPokemonDetails(url: entry.url)
                 pokemonDetails = details
+                
+                // Check if sprite is already cached
+                if let cachedSprite = detailsCache[entry.url]?.sprite {
+                    pokemonSprite = cachedSprite
+                } else if let frontDefaultURL = details.sprites.front_default {
+                    let sprite = try await fetchPokemonSprite(url: frontDefaultURL)
+                    pokemonSprite = Image(uiImage: sprite)
+                    
+                    // Cache both details and sprite
+                    detailsCache[entry.url] = (details, pokemonSprite!)
+                }
+                
             } catch {
-                print(error)
+                print("Error fetching pokemon details:", error)
             }
+            isFetchingDetails = false
         }
     }
     
-
+    private func fetchPokemonSprite(url: URL) async throws -> UIImage {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        guard let image = UIImage(data: data) else {
+            throw FetchError.invalidImageData
+        }
+        return image
+    }
 }
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-    }
-}
-
-func pokemonBackgroundColor (for type: String?) -> Color {
-    switch type {
-        case "fire":
-            return Color.red.opacity(0.6)
-        case "water":
-            return Color.blue.opacity(0.6)
-        case "grass":
-            return Color.green.opacity(0.6)
-        case "electric":
-            return Color.yellow.opacity(0.6)
-        case "psychic":
-            return Color.purple.opacity(0.6)
-        case "ice":
-            return Color.cyan.opacity(0.6)
-        case "dragon":
-            return Color.orange.opacity(0.6)
-        case "dark":
-            return Color.black.opacity(0.6)
-        case "fairy":
-            return Color.pink.opacity(0.6)
-        default:
-            return Color.gray.opacity(0.6)
     }
 }
