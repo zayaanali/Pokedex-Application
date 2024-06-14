@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+/* Converts height from decameters to ft, inches */
 func convertHeight(decameters: Int) -> (feet: Int, inches : Int) {
     let totalInches = Double(decameters) * 10 / 2.54
     let feet = Int(totalInches / 12)
@@ -15,11 +16,12 @@ func convertHeight(decameters: Int) -> (feet: Int, inches : Int) {
     return (feet, inches)
 }
 
+/* Converts weight from decagrams to pounds */
 func convertWeight(decagrams: Int) -> Int {
     return Int(( Double(decagrams) / 4.5359 ).rounded())
 }
 
-
+/* Returns viewer friendly stat names */
 func shortenedStatName (statName: String) -> String {
     switch statName {
     case "hp":
@@ -39,6 +41,7 @@ func shortenedStatName (statName: String) -> String {
     }
 }
 
+/* Returns background color given type for themeing */
 func pokemonBackgroundColor (for type: String?) -> Color {
     switch type {
         case "fire":
@@ -68,6 +71,7 @@ enum FetchError: Error {
     case invalidImageData
 }
 
+/* Information box used in detail view */
 func infoBox (title: String, height: CGFloat, offset: CGFloat, color: Color) -> some View {
     ZStack {
         RoundedRectangle(cornerRadius: /*@START_MENU_TOKEN@*/25.0/*@END_MENU_TOKEN@*/, style: .continuous)
