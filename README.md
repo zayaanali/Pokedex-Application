@@ -2,7 +2,7 @@
 
 <p align="center">
   This repository contains project files for a simple application that pulls a list of all pokemon from PokeAPI and provides the ability to view more detailed information about each Pokemon
-<p align="center">
+<p float="left">
 <img src="/IMG/home.png" width="320"/>
 <img src="/IMG/detail.png" width="320"/>
 </p>
