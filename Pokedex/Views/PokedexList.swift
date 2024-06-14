@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PokedexList: View {
-    @State private var pokeDex: [PokemonEntry] = []
+    @State var pokeDex: [PokemonEntry] = []
     @State private var currentPage: Int = 0
     @State private var canLoadMore: Bool = true
     @State var searchText: String = ""
@@ -18,7 +18,13 @@ struct PokedexList: View {
     
     /* Filtered list of Pokemon (based on search text) */
     var filteredPokedex: [PokemonEntry] {
-        searchText.isEmpty ? pokeDex : pokeDex.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        if searchText.isEmpty {
+            let startIndex = currentPage * 20
+            let endIndex = min((currentPage + 1) * 20, pokeDex.count)
+            return Array(pokeDex[startIndex..<endIndex])
+        } else {
+            return pokeDex.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        }
     }
     
     /* Pokedex List View */
@@ -36,20 +42,36 @@ struct PokedexList: View {
                 .listRowSeparator(.hidden)
                 
                 // Load more pokemon
-                if canLoadMore {
-                    Button(action: {
-                        currentPage += 1
-                        fetchPokeDex()
-                    }, label: {
-                        Text("Load More")
-                            .foregroundColor(.blue)
+                if currentPage < 65 {
+                    HStack {
+                        Button(action: {
+                            currentPage -= 1
+                            fetchPokeDex()
+                        }, label: {
+                            Text("Previous Page")
+                                .foregroundColor(.blue)
                             
-                    })
-                    .buttonStyle(PlainButtonStyle())
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(10)
+                        })
+                        .buttonStyle(PlainButtonStyle())
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        
+                        Button(action: {
+                            currentPage += 1
+                            fetchPokeDex()
+                        }, label: {
+                            Text("Next Page")
+                                .foregroundColor(.blue)
+                                
+                        })
+                        .buttonStyle(PlainButtonStyle())
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                    }
                 } else {
                     Text("No more Pokemon to load.")
                         .foregroundColor(.gray)
@@ -61,57 +83,22 @@ struct PokedexList: View {
             .listRowInsets(.init(top:0, leading: 40, bottom: 0, trailing: 40))
         }
         .onAppear {
-            loadPokeDex()
+            fetchPokeDex()
         }
         .alert(isPresented: $showError) {
             Alert(title: Text("Error"), message: Text(errorMessage), dismissButton: .default(Text("OK")))
         }
     }
     
-    /* Attempts to get data from cache. If not found then access API */
-    private func loadPokeDex() {
-        if let cachedPokedex = UserDefaults.standard.data(forKey: "pokeDex"),
-           let decodedPokedex = try? JSONDecoder().decode([PokemonEntry].self, from: cachedPokedex) {
-            self.pokeDex = decodedPokedex
-        }
-        
-        // Always fetch fresh data if cache is empty or outdated
-        fetchPokeDex()
-    }
-    
-    
     /* Helper function to fetch API data */
-    private func fetchPokeDex() {
+    func fetchPokeDex() {
         Task {
             do {
-                let limit = 20  // Number of entries per page
-                let offset = currentPage * limit
-                
-                let fetchedPokedex = try await PokeAPI().fetchPokemon(limit: limit, offset: offset)
-                
-                // If fetching the first page, clear existing data
-                if currentPage == 0 {
-                    self.pokeDex = fetchedPokedex
-                } else {
-                    self.pokeDex.append(contentsOf: fetchedPokedex)
-                }
-                
-                if fetchedPokedex.isEmpty {
-                    self.canLoadMore = false  // No more data to load
-                }
-                
-                cachePokeDex(pokeDex: self.pokeDex)
+                pokeDex = try await PokeAPI().fetchPokemon()
             } catch {
                 self.errorMessage = error.localizedDescription
                 self.showError = true
             }
-        }
-    }
-    
-    /* Helper function that caches PokeDex data*/
-    private func cachePokeDex(pokeDex: [PokemonEntry]) {
-        if let encodedPokedex = try? JSONEncoder().encode(pokeDex) {
-            UserDefaults.standard.set(encodedPokedex, forKey: "pokeDex")
         }
     }
 }

@@ -19,6 +19,7 @@ func convertWeight(decagrams: Int) -> Int {
     return Int(( Double(decagrams) / 4.5359 ).rounded())
 }
 
+
 func shortenedStatName (statName: String) -> String {
     switch statName {
     case "hp":

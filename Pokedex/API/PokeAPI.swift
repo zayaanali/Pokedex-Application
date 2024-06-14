@@ -18,8 +18,8 @@ struct PokemonEntry : Codable, Identifiable {
 }
 
 class PokeAPI {
-    func fetchPokemon (limit: Int, offset: Int) async throws -> [PokemonEntry] {
-        let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=\(limit)&offset=\(offset)")!
+    func fetchPokemon () async throws -> [PokemonEntry] {
+        let url = URL(string: "https://pokeapi.co/api/v2/pokemon?limit=1302")!
 
         let (data, _) = try await URLSession.shared.data(from: url)
         let pokemonList = try JSONDecoder().decode(Pokemon.self, from: data)
